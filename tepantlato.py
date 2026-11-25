@@ -51,28 +51,30 @@ por_nivel = filas.pivot_table(index="CICLO", columns="NIVEL", values="MAT_TOTAL"
 por_nivel.to_csv(SALIDA / "matricula_por_nivel.csv")
 
 # Gráficas
-ax = r[["MAT_TOTAL", "NI", "E", "T"]].rename(columns={
-    "MAT_TOTAL": "Matrícula", "NI": "Nuevo ingreso", "E": "Egresados", "T": "Titulados"}).plot(marker="o", figsize=(10, 5))
-ax.set(title="Universidad Tepantlato: evolución por ciclo", xlabel="", ylabel="Personas")
-ax.tick_params(axis="x", rotation=45)
-plt.tight_layout(); plt.savefig(SALIDA / "evolucion.png", dpi=120); plt.close()
+FUENTE = (f"Fuente: elaboración propia con datos de ANUIES, Anuario Estadístico de Educación Superior, "
+          f"ciclos {r.index[0]} a {r.index[-1]} (anuario.anuies.mx).")
 
-ax = por_nivel.plot.area(figsize=(10, 5))
-ax.set(title="Universidad Tepantlato: matrícula por nivel", xlabel="", ylabel="Matrícula")
-ax.tick_params(axis="x", rotation=45)
-plt.tight_layout(); plt.savefig(SALIDA / "matricula_por_nivel.png", dpi=120); plt.close()
 
-ax = r[["PCT_MUJERES_MAT", "TASA_TITULACION"]].rename(columns={
-    "PCT_MUJERES_MAT": "% mujeres en matrícula", "TASA_TITULACION": "Titulados / egresados (%)"}).plot(marker="o", figsize=(10, 5))
-ax.set(title="Universidad Tepantlato: composición por sexo y titulación", xlabel="", ylabel="%")
-ax.tick_params(axis="x", rotation=45)
-plt.tight_layout(); plt.savefig(SALIDA / "sexo_titulacion.png", dpi=120); plt.close()
+def guardar(ax, titulo, ylabel, archivo):
+    ax.set(title=f"Universidad Tepantlato: {titulo}", xlabel="", ylabel=ylabel)
+    ax.tick_params(axis="x", rotation=45)
+    fig = ax.figure
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.text(0.01, 0.01, FUENTE, fontsize=8, color="#555")
+    fig.savefig(SALIDA / archivo, dpi=120)
+    plt.close(fig)
 
-ax = r[["SNI", "LO_REAL", "NI"]].rename(columns={
-    "SNI": "Solicitudes", "LO_REAL": "Lugares ofertados", "NI": "Nuevo ingreso"}).plot(marker="o", figsize=(10, 5))
-ax.set(title="Universidad Tepantlato: demanda contra admisión", xlabel="", ylabel="Personas")
-ax.tick_params(axis="x", rotation=45)
-plt.tight_layout(); plt.savefig(SALIDA / "demanda.png", dpi=120); plt.close()
+
+guardar(r[["MAT_TOTAL", "NI", "E", "T"]].rename(columns={
+    "MAT_TOTAL": "Matrícula", "NI": "Nuevo ingreso", "E": "Egresados", "T": "Titulados"}).plot(marker="o", figsize=(10, 5)),
+    "evolución por ciclo", "Personas", "evolucion.png")
+guardar(por_nivel.plot.area(figsize=(10, 5)), "matrícula por nivel", "Matrícula", "matricula_por_nivel.png")
+guardar(r[["PCT_MUJERES_MAT", "TASA_TITULACION"]].rename(columns={
+    "PCT_MUJERES_MAT": "% mujeres en matrícula", "TASA_TITULACION": "Titulados / egresados (%)"}).plot(marker="o", figsize=(10, 5)),
+    "composición por sexo y titulación", "%", "sexo_titulacion.png")
+guardar(r[["SNI", "LO_REAL", "NI"]].rename(columns={
+    "SNI": "Solicitudes", "LO_REAL": "Lugares ofertados", "NI": "Nuevo ingreso"}).plot(marker="o", figsize=(10, 5)),
+    "demanda contra admisión", "Personas", "demanda.png")
 
 pd.set_option("display.width", 200, "display.max_columns", 30, "display.max_rows", 200)
 print(r[["MAT_TOTAL", "NI", "SNI", "LO_REAL", "E", "T", "PCT_MUJERES_MAT", "TASA_TITULACION", "PROGRAMAS"]].round(1))
